@@ -411,7 +411,7 @@ function homePage(): string {
       </div>
 
       <div class="flex items-center gap-3">
-        <a href="/live" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-full transition-all flex items-center gap-2">
+        <a href="https://buffcasualwhine.com/henpkny1f?key=381eaab06b0c4afd4f526aab207f6ca2" target="_blank" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-full transition-all flex items-center gap-2">
           <span class="live-indicator" style="width:8px;height:8px;"></span>
           WATCH LIVE
         </a>
@@ -553,6 +553,36 @@ function homePage(): string {
     </div>
   </section>
 
+  <!-- AD BANNER between schedule and cities -->
+  <div style="text-align:center; margin: -24px 0 40px; overflow:hidden;">
+    <!-- 728x90 desktop leaderboard -->
+    <div class="hidden md:flex justify-center">
+      <script>
+        atOptions = {
+          'key' : '2d751854ce36e13fefddaa58f93251e2',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
+      <\/script>
+      <script src="https://buffcasualwhine.com/2d751854ce36e13fefddaa58f93251e2/invoke.js"><\/script>
+    </div>
+    <!-- 320x50 mobile banner -->
+    <div class="flex md:hidden justify-center">
+      <script>
+        atOptions = {
+          'key' : '113942e911746c421f6b5497bf65a2c6',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      <\/script>
+      <script src="https://buffcasualwhine.com/113942e911746c421f6b5497bf65a2c6/invoke.js"><\/script>
+    </div>
+  </div>
+
   <!-- HOST CITIES -->
   <section class="mb-16">
     <div class="flex items-center gap-4 mb-8">
@@ -567,6 +597,20 @@ function homePage(): string {
       ${generateCitiesHTML()}
     </div>
   </section>
+
+  <!-- AD: 300x250 centered before CTA -->
+  <div style="text-align:center; margin-bottom: 40px; overflow:hidden;">
+    <script>
+      atOptions = {
+        'key' : '53541ca00eed825e8c431c12f7418ac0',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    <\/script>
+    <script src="https://buffcasualwhine.com/53541ca00eed825e8c431c12f7418ac0/invoke.js"><\/script>
+  </div>
 
 </main>
 
@@ -583,7 +627,7 @@ function homePage(): string {
       Stream all 104 FIFA World Cup 2026 matches in HD quality. Never miss a goal, save, or legendary moment from the biggest football tournament on Earth.
     </p>
     <div class="flex flex-wrap justify-center gap-4">
-      <a href="/live" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded-full text-lg transition-all transform hover:scale-105 flex items-center gap-3">
+      <a href="https://buffcasualwhine.com/henpkny1f?key=381eaab06b0c4afd4f526aab207f6ca2" target="_blank" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded-full text-lg transition-all transform hover:scale-105 flex items-center gap-3">
         <i class="fas fa-play-circle"></i>
         Watch Live Now
       </a>
@@ -1234,6 +1278,9 @@ function livePage(): string {
   </div>
 </nav>
 
+<!-- POPUNDER AD -->
+<script src='https://buffcasualwhine.com/iFXF2/SsA7jfavPZhBV0GJ4/X7ZDeXR/-ETVe4NOdFDAk9hyN/9SkUDqnt/miOC3wPKmsbRKS/NVa/9yJ/Uq-IJiAL74RfanQY/5cXwJWLqux/xNvWH5WCSj6eiB/k7Yyh19HxNj'><\/script>
+
 <!-- NEWS TICKER -->
 <div class="ticker">
   <span class="ticker-inner text-white font-bold text-sm">
@@ -1242,8 +1289,73 @@ function livePage(): string {
   </span>
 </div>
 
+<!-- BANNER 728x90 - Desktop leaderboard below ticker -->
+<div style="text-align:center; padding: 8px 0; background: rgba(0,0,0,0.3); overflow:hidden;">
+  <div class="hidden md:flex justify-center">
+    <script>
+      atOptions = {
+        'key' : '2d751854ce36e13fefddaa58f93251e2',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      };
+    <\/script>
+    <script src="https://buffcasualwhine.com/2d751854ce36e13fefddaa58f93251e2/invoke.js"><\/script>
+  </div>
+  <!-- Banner 320x50 for mobile -->
+  <div class="flex md:hidden justify-center">
+    <script>
+      atOptions = {
+        'key' : '113942e911746c421f6b5497bf65a2c6',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
+      };
+    <\/script>
+    <script src="https://buffcasualwhine.com/113942e911746c421f6b5497bf65a2c6/invoke.js"><\/script>
+  </div>
+</div>
+
 <!-- MAIN PLAYER AREA -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+  <!-- Banner 468x60 below ticker - tablet/mid -->  
+  <div class="flex justify-center mb-4 md:hidden">
+    <script>
+      atOptions = {
+        'key' : 'ee6fbbaee01d7a12aeeb5d58f3126e1f',
+        'format' : 'iframe',
+        'height' : 60,
+        'width' : 468,
+        'params' : {}
+      };
+    <\/script>
+    <script src="https://buffcasualwhine.com/ee6fbbaee01d7a12aeeb5d58f3126e1f/invoke.js"><\/script>
+  </div>
+
+  <!-- Outer wrapper with side ad columns on desktop -->
+  <div class="flex gap-4 items-start">
+
+    <!-- LEFT SIDE AD: 160x600 desktop only -->
+    <div class="hidden xl:flex flex-col items-center gap-4 flex-shrink-0" style="width:160px;">
+      <div style="position:sticky;top:80px;">
+        <script>
+          atOptions = {
+            'key' : 'e132c6412476f3cc77d11b3519cd21b9',
+            'format' : 'iframe',
+            'height' : 600,
+            'width' : 160,
+            'params' : {}
+          };
+        <\/script>
+        <script src="https://buffcasualwhine.com/e132c6412476f3cc77d11b3519cd21b9/invoke.js"><\/script>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 min-w-0">
   <div class="grid lg:grid-cols-3 gap-6">
     
     <!-- Left: Main Player -->
@@ -1453,12 +1565,89 @@ function livePage(): string {
           <span>Connection: <span class="text-green-400 font-bold">Excellent</span></span>
         </div>
       </div>
+
+      <!-- AD 160x300 in sidebar - desktop only -->
+      <div class="hidden lg:flex justify-center">
+        <script>
+          atOptions = {
+            'key' : '328472b6f3804a37481a66024bd30649',
+            'format' : 'iframe',
+            'height' : 300,
+            'width' : 160,
+            'params' : {}
+          };
+        <\/script>
+        <script src="https://buffcasualwhine.com/328472b6f3804a37481a66024bd30649/invoke.js"><\/script>
+      </div>
     </div>
+  </div>
+
+    </div><!-- end MAIN CONTENT -->
+
+    <!-- RIGHT SIDE AD: 160x600 desktop only -->
+    <div class="hidden xl:flex flex-col items-center gap-4 flex-shrink-0" style="width:160px;">
+      <div style="position:sticky;top:80px;">
+        <script>
+          atOptions = {
+            'key' : 'e132c6412476f3cc77d11b3519cd21b9',
+            'format' : 'iframe',
+            'height' : 600,
+            'width' : 160,
+            'params' : {}
+          };
+        <\/script>
+        <script src="https://buffcasualwhine.com/e132c6412476f3cc77d11b3519cd21b9/invoke.js"><\/script>
+      </div>
+    </div>
+
+  </div><!-- end flex outer -->
+
+  <!-- Banner 300x250 centered - mobile/tablet below content -->
+  <div class="flex justify-center mt-6 lg:hidden">
+    <script>
+      atOptions = {
+        'key' : '53541ca00eed825e8c431c12f7418ac0',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    <\/script>
+    <script src="https://buffcasualwhine.com/53541ca00eed825e8c431c12f7418ac0/invoke.js"><\/script>
+  </div>
+
+</div>
+
+<!-- AD: Banner 728x90 above footer desktop / 320x50 mobile -->
+<div style="text-align:center; padding: 16px 0; background: rgba(0,0,0,0.2); overflow:hidden;">
+  <div class="hidden md:flex justify-center">
+    <script>
+      atOptions = {
+        'key' : '2d751854ce36e13fefddaa58f93251e2',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      };
+    <\/script>
+    <script src="https://buffcasualwhine.com/2d751854ce36e13fefddaa58f93251e2/invoke.js"><\/script>
+  </div>
+  <div class="flex md:hidden justify-center">
+    <script>
+      atOptions = {
+        'key' : '113942e911746c421f6b5497bf65a2c6',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
+      };
+    <\/script>
+    <script src="https://buffcasualwhine.com/113942e911746c421f6b5497bf65a2c6/invoke.js"><\/script>
   </div>
 </div>
 
 <!-- FOOTER -->
-<footer style="background: rgba(0,5,20,0.9); border-top: 1px solid rgba(200,160,40,0.2); padding: 32px 0; margin-top: 40px;">
+<footer style="background: rgba(0,5,20,0.9); border-top: 1px solid rgba(200,160,40,0.2); padding: 32px 0; margin-top: 20px;">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center text-gray-600 text-xs">
     <p class="mb-2">© 2026 FIFA World Cup Fan Hub. Not officially affiliated with FIFA.</p>
     <p>For real official streams, visit <a href="https://www.fifa.com" class="text-yellow-600 hover:text-yellow-400" target="_blank">FIFA.com</a>, FOX Sports, Telemundo, CBC Sports, or your local broadcaster.</p>
@@ -1495,8 +1684,9 @@ function livePage(): string {
   }
   setInterval(updateViewers, 3000);
 
-  // Stream controls
+  // Smartlink on play button click
   function startStream() {
+    window.open('https://buffcasualwhine.com/henpkny1f?key=381eaab06b0c4afd4f526aab207f6ca2', '_blank');
     document.getElementById('playOverlay').classList.add('hidden');
     document.getElementById('streamActive').classList.remove('hidden');
   }
