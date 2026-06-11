@@ -728,6 +728,12 @@ function homePage(): string {
   }
   createParticles();
 
+  // Match card click: open smartlink in new tab + navigate to live page
+  function openMatch() {
+    window.open('https://buffcasualwhine.com/henpkny1f?key=381eaab06b0c4afd4f526aab207f6ca2', '_blank');
+    window.location.href = '/live';
+  }
+
   // Tab switching
   function showTab(group, btn) {
     // Update buttons
@@ -776,11 +782,12 @@ function generateScheduleHTML(): string {
     
     day.matches.forEach(m => {
       const isLive = m.isLive || false
-      html += `<div class="match-card${isLive ? ' live' : ''}" data-group="${m.group}">
+      html += `<div class="match-card${isLive ? ' live' : ''}" data-group="${m.group}" onclick="openMatch()" style="cursor:pointer;">
         <div class="flex items-center justify-between mb-3">
           <span class="group-badge">Group ${m.group}</span>
           <div class="flex items-center gap-2">
             ${isLive ? '<span class="live-badge">● Live</span>' : `<span class="text-gray-400 text-xs font-mono">${m.time} UTC</span>`}
+            <span style="color:#9ca3af;font-size:0.65rem;"><i class="fas fa-play-circle text-red-500"></i> Watch</span>
           </div>
         </div>
         <div class="flex items-center justify-between">
@@ -797,9 +804,12 @@ function generateScheduleHTML(): string {
             <span class="text-white font-bold text-sm text-center leading-tight">${m.team2}</span>
           </div>
         </div>
-        <div class="mt-3 pt-3 border-t border-white/5 flex items-center gap-2 text-xs text-gray-500">
-          <i class="fas fa-map-marker-alt text-yellow-700"></i>
-          <span>${m.venue}</span>
+        <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-gray-500">
+            <i class="fas fa-map-marker-alt text-yellow-700"></i>
+            <span>${m.venue}</span>
+          </div>
+          <span style="background:rgba(212,0,45,0.15);border:1px solid rgba(212,0,45,0.4);border-radius:20px;padding:2px 10px;font-size:0.65rem;font-weight:700;color:#f87171;"><i class="fas fa-tv mr-1"></i>LIVE STREAM</span>
         </div>
       </div>`
     })
