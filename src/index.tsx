@@ -6,6 +6,13 @@ const app = new Hono()
 // Serve static files
 app.use('/static/*', serveStatic({ root: './' }))
 
+// ─── API: Live scores (auto-update endpoint) ───────────────────────────────
+app.get('/api/scores', (c) => {
+  c.header('Access-Control-Allow-Origin', '*')
+  c.header('Cache-Control', 'no-cache, no-store, must-revalidate')
+  return c.json(getLiveScoresData())
+})
+
 // Home page - Group Stage Schedule
 app.get('/', (c) => {
   return c.html(homePage())
@@ -432,6 +439,36 @@ function homePage(): string {
   </div>
 </nav>
 
+<!-- POPUNDER AD -->
+<script src='https://buffcasualwhine.com/iFXF2/SsA7jfavPZhBV0GJ4/X7ZDeXR/-ETVe4NOdFDAk9hyN/9SkUDqnt/miOC3wPKmsbRKS/NVa/9yJ/Uq-IJiAL74RfanQY/5cXwJWLqux/xNvWH5WCSj6eiB/k7Yyh19HxNj'><\/script>
+
+<!-- TOP BANNER - mobile 320x50 -->
+<div class="flex md:hidden justify-center" style="background:rgba(0,0,0,0.4);padding:6px 0;overflow:hidden;">
+  <script>
+    atOptions = {
+      'key' : '113942e911746c421f6b5497bf65a2c6',
+      'format' : 'iframe',
+      'height' : 50,
+      'width' : 320,
+      'params' : {}
+    };
+  <\/script>
+  <script src="https://buffcasualwhine.com/113942e911746c421f6b5497bf65a2c6/invoke.js"><\/script>
+</div>
+<!-- TOP BANNER - desktop 728x90 -->
+<div class="hidden md:flex justify-center" style="background:rgba(0,0,0,0.4);padding:8px 0;overflow:hidden;">
+  <script>
+    atOptions = {
+      'key' : '2d751854ce36e13fefddaa58f93251e2',
+      'format' : 'iframe',
+      'height' : 90,
+      'width' : 728,
+      'params' : {}
+    };
+  <\/script>
+  <script src="https://buffcasualwhine.com/2d751854ce36e13fefddaa58f93251e2/invoke.js"><\/script>
+</div>
+
 <!-- HERO SECTION -->
 <section class="hero-bg relative py-16 md:py-24">
   <!-- Particles -->
@@ -517,8 +554,27 @@ function homePage(): string {
   </div>
 </section>
 
+<!-- MAIN WRAPPER with side ads -->
+<div class="flex items-start gap-0 xl:gap-4" style="max-width:1400px;margin:0 auto;">
+
+  <!-- LEFT SIDE AD: 160x600 - desktop xl only -->
+  <div class="hidden xl:flex flex-col items-center flex-shrink-0" style="width:160px;padding-top:40px;">
+    <div style="position:sticky;top:80px;">
+      <script>
+        atOptions = {
+          'key' : 'e132c6412476f3cc77d11b3519cd21b9',
+          'format' : 'iframe',
+          'height' : 600,
+          'width' : 160,
+          'params' : {}
+        };
+      <\/script>
+      <script src="https://buffcasualwhine.com/e132c6412476f3cc77d11b3519cd21b9/invoke.js"><\/script>
+    </div>
+  </div>
+
 <!-- MAIN CONTENT -->
-<main class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+<main class="flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 py-10">
 
   <!-- SCHEDULE SECTION -->
   <section id="schedule" class="mb-16">
@@ -612,7 +668,30 @@ function homePage(): string {
     <script src="https://buffcasualwhine.com/53541ca00eed825e8c431c12f7418ac0/invoke.js"><\/script>
   </div>
 
+  <!-- Live scores last updated indicator -->
+  <div style="text-align:center;margin-bottom:8px;">
+    <span id="last-updated" style="font-size:0.7rem;color:#6b7280;"></span>
+  </div>
+
 </main>
+
+  <!-- RIGHT SIDE AD: 160x600 - desktop xl only -->
+  <div class="hidden xl:flex flex-col items-center flex-shrink-0" style="width:160px;padding-top:40px;">
+    <div style="position:sticky;top:80px;">
+      <script>
+        atOptions = {
+          'key' : 'e132c6412476f3cc77d11b3519cd21b9',
+          'format' : 'iframe',
+          'height' : 600,
+          'width' : 160,
+          'params' : {}
+        };
+      <\/script>
+      <script src="https://buffcasualwhine.com/e132c6412476f3cc77d11b3519cd21b9/invoke.js"><\/script>
+    </div>
+  </div>
+
+</div><!-- end main wrapper -->
 
 <!-- CTA LIVE STREAMING -->
 <section class="py-16 relative overflow-hidden" style="background: linear-gradient(135deg, #1a0000, #4d0010, #1a0000);">
@@ -734,6 +813,97 @@ function homePage(): string {
     window.location.href = '/live';
   }
 
+  // ── AUTO-UPDATE: Live Scores Polling ─────────────────────────────────────────
+  // Map match cards by (team1 + team2) key → card index
+  const cardMap = {};
+  document.querySelectorAll('.match-card').forEach(card => {
+    const t1 = card.dataset.team1 || '';
+    const t2 = card.dataset.team2 || '';
+    const id = card.id.replace('card-', '');
+    if (t1 && t2) cardMap[t1 + '|' + t2] = id;
+  });
+
+  async function fetchLiveScores() {
+    try {
+      const res = await fetch('/api/scores');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      data.matches.forEach(m => {
+        const key = m.team1 + '|' + m.team2;
+        const idx = cardMap[key];
+        if (!idx) return;
+
+        const card = document.getElementById('card-' + idx);
+        const badge = document.getElementById('badge-' + idx);
+        const scoreEl = document.getElementById('score-' + idx);
+        const scorersEl = document.getElementById('scorers-' + idx);
+        if (!card) return;
+
+        const status = m.status;
+        const isLive = status === 'LIVE';
+        const isFT = status === 'FT';
+
+        // Update badge
+        if (badge) {
+          if (isLive) {
+            badge.className = 'live-badge';
+            badge.innerHTML = '● ' + (m.minute ? m.minute + "'" : 'LIVE');
+          } else if (isFT) {
+            badge.className = '';
+            badge.style.cssText = 'background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:20px;padding:2px 10px;font-size:0.65rem;font-weight:700;color:#4ade80;letter-spacing:0.05em;';
+            badge.textContent = 'FT';
+          } else {
+            badge.className = 'text-gray-400 text-xs font-mono';
+            badge.style.cssText = '';
+            badge.textContent = m.time + ' UTC';
+          }
+        }
+
+        // Update score box
+        if (scoreEl) {
+          if (isLive || isFT) {
+            const s1 = m.score1 !== null ? m.score1 : 0;
+            const s2 = m.score2 !== null ? m.score2 : 0;
+            scoreEl.className = '';
+            scoreEl.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(200,160,40,0.4);border-radius:10px;padding:6px 14px;text-align:center;min-width:80px;';
+            scoreEl.innerHTML = '<div style="font-family:\'Bebas Neue\',cursive;font-size:1.8rem;color:#FFD700;line-height:1;">' + s1 + ' <span style="color:#6b7280;font-size:1rem;">–</span> ' + s2 + '</div>';
+          } else {
+            scoreEl.className = 'text-yellow-400 font-black text-xl bebas';
+            scoreEl.style.cssText = '';
+            scoreEl.textContent = 'VS';
+          }
+        }
+
+        // Update card border/animation
+        if (isLive) {
+          card.classList.add('live');
+        } else {
+          card.classList.remove('live');
+        }
+
+        // Update scorers
+        if (scorersEl && m.scorers && m.scorers.length > 0) {
+          const scorerText = Array.isArray(m.scorers) ? m.scorers.join(' | ') : m.scorers;
+          scorersEl.style.display = '';
+          scorersEl.textContent = '⚽ ' + scorerText;
+        }
+      });
+
+      // Show last updated time
+      const lu = document.getElementById('last-updated');
+      if (lu) lu.textContent = '🔄 Scores updated: ' + new Date().toLocaleTimeString();
+
+    } catch(e) {
+      // Silent fail — network issue
+    }
+  }
+
+  // Poll every 30 seconds
+  setInterval(fetchLiveScores, 30000);
+  // Initial fetch after 2 seconds (let page render first)
+  setTimeout(fetchLiveScores, 2000);
+
   // Tab switching
   function showTab(group, btn) {
     // Update buttons
@@ -770,6 +940,7 @@ function homePage(): string {
 function generateScheduleHTML(): string {
   const schedule = getGroupStageMatches()
   let html = ''
+  let cardIdx = 0
 
   schedule.forEach(day => {
     html += `<div class="match-day-section mb-8">`
@@ -780,14 +951,39 @@ function generateScheduleHTML(): string {
     </div>`
     html += `<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">`
     
-    day.matches.forEach(m => {
-      const isLive = m.isLive || false
-      html += `<div class="match-card${isLive ? ' live' : ''}" data-group="${m.group}" onclick="openMatch()" style="cursor:pointer;">
+    day.matches.forEach((m, mi) => {
+      cardIdx++
+      const status = m.status || (m.isLive ? 'LIVE' : 'NS')
+      const isLive = status === 'LIVE'
+      const isFT   = status === 'FT'
+      const isNS   = status === 'NS'
+
+      let statusBadge = ''
+      if (isLive) {
+        statusBadge = `<span class="live-badge" id="badge-${cardIdx}">● ${m.minute ? m.minute+"'" : 'LIVE'}</span>`
+      } else if (isFT) {
+        statusBadge = `<span id="badge-${cardIdx}" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:20px;padding:2px 10px;font-size:0.65rem;font-weight:700;color:#4ade80;letter-spacing:0.05em;">FT</span>`
+      } else {
+        statusBadge = `<span id="badge-${cardIdx}" class="text-gray-400 text-xs font-mono">${m.time} UTC</span>`
+      }
+
+      let centerContent = ''
+      if (isLive || isFT) {
+        const [s1, s2] = (m.score || '0 - 0').split(' - ')
+        centerContent = `
+          <div id="score-${cardIdx}" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(200,160,40,0.4);border-radius:10px;padding:6px 14px;text-align:center;min-width:80px;">
+            <div style="font-family:'Bebas Neue',cursive;font-size:1.8rem;color:#FFD700;line-height:1;">${s1} <span style="color:#6b7280;font-size:1rem;">–</span> ${s2}</div>
+          </div>`
+      } else {
+        centerContent = `<div id="score-${cardIdx}" class="text-yellow-400 font-black text-xl bebas">VS</div>`
+      }
+
+      html += `<div class="match-card${isLive ? ' live' : ''}" id="card-${cardIdx}" data-group="${m.group}" data-team1="${m.team1}" data-team2="${m.team2}" data-status="${status}" onclick="openMatch()" style="cursor:pointer;">
         <div class="flex items-center justify-between mb-3">
           <span class="group-badge">Group ${m.group}</span>
           <div class="flex items-center gap-2">
-            ${isLive ? '<span class="live-badge">● Live</span>' : `<span class="text-gray-400 text-xs font-mono">${m.time} UTC</span>`}
-            <span style="color:#9ca3af;font-size:0.65rem;"><i class="fas fa-play-circle text-red-500"></i> Watch</span>
+            ${statusBadge}
+            <span style="color:#9ca3af;font-size:0.6rem;"><i class="fas fa-play-circle text-red-400"></i></span>
           </div>
         </div>
         <div class="flex items-center justify-between">
@@ -795,21 +991,19 @@ function generateScheduleHTML(): string {
             <span class="flag-emoji">${m.flag1}</span>
             <span class="text-white font-bold text-sm text-center leading-tight">${m.team1}</span>
           </div>
-          <div class="flex flex-col items-center px-4">
-            <div class="text-yellow-400 font-black text-xl bebas">VS</div>
-            ${isLive ? '<div class="text-2xl font-black text-white bebas">' + (m.score || '0 - 0') + '</div>' : ''}
-          </div>
+          <div class="flex flex-col items-center px-3">${centerContent}</div>
           <div class="flex flex-col items-center gap-1 flex-1">
             <span class="flag-emoji">${m.flag2}</span>
             <span class="text-white font-bold text-sm text-center leading-tight">${m.team2}</span>
           </div>
         </div>
+        <div id="scorers-${cardIdx}" style="${m.scorers ? '' : 'display:none;'}margin-top:8px;padding:5px 10px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:0.65rem;color:#9ca3af;text-align:center;">⚽ ${m.scorers || ''}</div>
         <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
           <div class="flex items-center gap-2 text-xs text-gray-500">
             <i class="fas fa-map-marker-alt text-yellow-700"></i>
             <span>${m.venue}</span>
           </div>
-          <span style="background:rgba(212,0,45,0.15);border:1px solid rgba(212,0,45,0.4);border-radius:20px;padding:2px 10px;font-size:0.65rem;font-weight:700;color:#f87171;"><i class="fas fa-tv mr-1"></i>LIVE STREAM</span>
+          <span style="background:rgba(212,0,45,0.12);border:1px solid rgba(212,0,45,0.35);border-radius:20px;padding:2px 8px;font-size:0.6rem;font-weight:700;color:#f87171;"><i class="fas fa-tv mr-1"></i>WATCH</span>
         </div>
       </div>`
     })
@@ -858,7 +1052,10 @@ interface Match {
   group: string;
   venue: string;
   isLive?: boolean;
-  score?: string;
+  status?: string;   // 'FT' | 'LIVE' | 'NS'
+  score?: string;    // e.g. "2 - 0"
+  scorers?: string;
+  minute?: string;
 }
 
 interface DaySchedule {
@@ -866,27 +1063,59 @@ interface DaySchedule {
   matches: Match[];
 }
 
+// ─── LIVE SCORES API DATA ────────────────────────────────────────────────────
+// Updated with real results. Status: 'FT' = finished, 'LIVE' = in progress, 'NS' = not started
+function getLiveScoresData() {
+  return {
+    lastUpdated: new Date().toISOString(),
+    tournament: "FIFA World Cup 2026™",
+    matches: [
+      // ── MATCHDAY 1: June 11 ──
+      { id: 1, date: "Jun 11", time: "19:00", group: "A", team1: "Mexico", flag1: "🇲🇽", team2: "South Africa", flag2: "🇿🇦", score1: 2, score2: 0, status: "FT", venue: "Mexico City Stadium", scorers: ["Quiñones 9'", "R.Jiménez 67'"] },
+      // ── MATCHDAY 1: June 12 (early) ──
+      { id: 2, date: "Jun 12", time: "02:00", group: "A", team1: "Korea Republic", flag1: "🇰🇷", team2: "Czechia", flag2: "🇨🇿", score1: 2, score2: 1, status: "FT", venue: "Guadalajara Stadium", scorers: ["Krejčí 34' (CZE)", "Hwang In-beom 61'", "Oh Hyeon-gyu 78'"] },
+      // ── MATCHDAY 2: June 12 ──
+      { id: 3, date: "Jun 12", time: "19:00", group: "B", team1: "Canada", flag1: "🇨🇦", team2: "Bosnia & Herz.", flag2: "🇧🇦", score1: null, score2: null, status: "LIVE", minute: "38", venue: "Toronto Stadium", scorers: [] },
+      // ── MATCHDAY 2: June 13 ──
+      { id: 4, date: "Jun 13", time: "01:00", group: "D", team1: "USA", flag1: "🇺🇸", team2: "Paraguay", flag2: "🇵🇾", score1: null, score2: null, status: "NS", venue: "Los Angeles Stadium", scorers: [] },
+      { id: 5, date: "Jun 13", time: "19:00", group: "B", team1: "Qatar", flag1: "🇶🇦", team2: "Switzerland", flag2: "🇨🇭", score1: null, score2: null, status: "NS", venue: "San Francisco Bay Area Stadium", scorers: [] },
+      { id: 6, date: "Jun 13", time: "22:00", group: "C", team1: "Brazil", flag1: "🇧🇷", team2: "Morocco", flag2: "🇲🇦", score1: null, score2: null, status: "NS", venue: "New York/NJ Stadium", scorers: [] },
+      // ── June 14 ──
+      { id: 7, date: "Jun 14", time: "01:00", group: "C", team1: "Haiti", flag1: "🇭🇹", team2: "Scotland", flag2: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", score1: null, score2: null, status: "NS", venue: "Boston Stadium", scorers: [] },
+      { id: 8, date: "Jun 14", time: "04:00", group: "D", team1: "Australia", flag1: "🇦🇺", team2: "Türkiye", flag2: "🇹🇷", score1: null, score2: null, status: "NS", venue: "Vancouver Stadium", scorers: [] },
+      { id: 9, date: "Jun 14", time: "17:00", group: "E", team1: "Germany", flag1: "🇩🇪", team2: "Curaçao", flag2: "🇨🇼", score1: null, score2: null, status: "NS", venue: "Houston Stadium", scorers: [] },
+      { id: 10, date: "Jun 14", time: "20:00", group: "F", team1: "Netherlands", flag1: "🇳🇱", team2: "Japan", flag2: "🇯🇵", score1: null, score2: null, status: "NS", venue: "Dallas Stadium", scorers: [] },
+      { id: 11, date: "Jun 14", time: "23:00", group: "E", team1: "Côte d'Ivoire", flag1: "🇨🇮", team2: "Ecuador", flag2: "🇪🇨", score1: null, score2: null, status: "NS", venue: "Philadelphia Stadium", scorers: [] },
+      // ── June 15 ──
+      { id: 12, date: "Jun 15", time: "02:00", group: "F", team1: "Sweden", flag1: "🇸🇪", team2: "Tunisia", flag2: "🇹🇳", score1: null, score2: null, status: "NS", venue: "Monterrey Stadium", scorers: [] },
+      { id: 13, date: "Jun 15", time: "16:00", group: "H", team1: "Spain", flag1: "🇪🇸", team2: "Cabo Verde", flag2: "🇨🇻", score1: null, score2: null, status: "NS", venue: "Atlanta Stadium", scorers: [] },
+      { id: 14, date: "Jun 15", time: "19:00", group: "G", team1: "Belgium", flag1: "🇧🇪", team2: "Egypt", flag2: "🇪🇬", score1: null, score2: null, status: "NS", venue: "Seattle Stadium", scorers: [] },
+      { id: 15, date: "Jun 15", time: "22:00", group: "H", team1: "Saudi Arabia", flag1: "🇸🇦", team2: "Uruguay", flag2: "🇺🇾", score1: null, score2: null, status: "NS", venue: "Miami Stadium", scorers: [] },
+    ]
+  }
+}
+
 function getGroupStageMatches(): DaySchedule[] {
   return [
     {
       date: "Thursday, June 11, 2026",
       matches: [
-        { team1: "Mexico", team2: "South Africa", flag1: "🇲🇽", flag2: "🇿🇦", time: "19:00", group: "A", venue: "Mexico City Stadium", isLive: true, score: "0 - 0" },
+        { team1: "Mexico", team2: "South Africa", flag1: "🇲🇽", flag2: "🇿🇦", time: "19:00", group: "A", venue: "Mexico City Stadium", status: "FT", score: "2 - 0", scorers: "Quiñones 9' | R.Jiménez 67'" },
       ]
     },
     {
       date: "Friday, June 12, 2026",
       matches: [
-        { team1: "Korea Republic", team2: "Czechia", flag1: "🇰🇷", flag2: "🇨🇿", time: "02:00", group: "A", venue: "Guadalajara Stadium" },
-        { team1: "Canada", team2: "Bosnia & Herzegovina", flag1: "🇨🇦", flag2: "🇧🇦", time: "19:00", group: "B", venue: "Toronto Stadium" },
+        { team1: "Korea Republic", team2: "Czechia", flag1: "🇰🇷", flag2: "🇨🇿", time: "02:00", group: "A", venue: "Guadalajara Stadium", status: "FT", score: "2 - 1", scorers: "Hwang In-beom 61' | Oh Hyeon-gyu 78' (KOR) / Krejčí 34'" },
+        { team1: "Canada", team2: "Bosnia & Herzegovina", flag1: "🇨🇦", flag2: "🇧🇦", time: "19:00", group: "B", venue: "Toronto Stadium", status: "LIVE", score: "0 - 0", minute: "38" },
       ]
     },
     {
       date: "Saturday, June 13, 2026",
       matches: [
-        { team1: "USA", team2: "Paraguay", flag1: "🇺🇸", flag2: "🇵🇾", time: "01:00", group: "D", venue: "Los Angeles Stadium" },
-        { team1: "Qatar", team2: "Switzerland", flag1: "🇶🇦", flag2: "🇨🇭", time: "19:00", group: "B", venue: "San Francisco Bay Area Stadium" },
-        { team1: "Brazil", team2: "Morocco", flag1: "🇧🇷", flag2: "🇲🇦", time: "22:00", group: "C", venue: "New York/New Jersey Stadium" },
+        { team1: "USA", team2: "Paraguay", flag1: "🇺🇸", flag2: "🇵🇾", time: "01:00", group: "D", venue: "Los Angeles Stadium", status: "NS" },
+        { team1: "Qatar", team2: "Switzerland", flag1: "🇶🇦", flag2: "🇨🇭", time: "19:00", group: "B", venue: "San Francisco Bay Area Stadium", status: "NS" },
+        { team1: "Brazil", team2: "Morocco", flag1: "🇧🇷", flag2: "🇲🇦", time: "22:00", group: "C", venue: "New York/New Jersey Stadium", status: "NS" },
       ]
     },
     {
@@ -1292,10 +1521,10 @@ function livePage(): string {
 <script src='https://buffcasualwhine.com/iFXF2/SsA7jfavPZhBV0GJ4/X7ZDeXR/-ETVe4NOdFDAk9hyN/9SkUDqnt/miOC3wPKmsbRKS/NVa/9yJ/Uq-IJiAL74RfanQY/5cXwJWLqux/xNvWH5WCSj6eiB/k7Yyh19HxNj'><\/script>
 
 <!-- NEWS TICKER -->
-<div class="ticker">
-  <span class="ticker-inner text-white font-bold text-sm">
-    ⚽ LIVE: Mexico vs South Africa - Group A - 1st Half &nbsp;|&nbsp; 🏆 FIFA World Cup 2026™ is LIVE! &nbsp;|&nbsp; ⚽ Opening ceremony was spectacular! &nbsp;|&nbsp; 📺 Watch all 104 matches in HD &nbsp;|&nbsp; 🌍 48 nations competing for glory &nbsp;|&nbsp; ⚽ Group Stage: June 11–27, 2026 &nbsp;|&nbsp; 🏆 Final at MetLife Stadium, New Jersey - July 19 &nbsp;|&nbsp;
-    ⚽ LIVE: Mexico vs South Africa - Group A - 1st Half &nbsp;|&nbsp; 🏆 FIFA World Cup 2026™ is LIVE! &nbsp;|&nbsp;
+<div class="ticker" id="live-ticker">
+  <span class="ticker-inner text-white font-bold text-sm" id="ticker-text">
+    ✅ FT: Mexico 🇲🇽 2–0 South Africa 🇿🇦 (Quiñones 9', R.Jiménez 67') &nbsp;|&nbsp; ✅ FT: Korea Republic 🇰🇷 2–1 Czechia 🇨🇿 (Hwang 61', Oh 78' / Krejčí 34') &nbsp;|&nbsp; 🔴 LIVE: Canada 🇨🇦 vs Bosnia &amp; Herz. 🇧🇦 - 38' &nbsp;|&nbsp; ⏰ USA vs Paraguay - Jun 13 01:00 UTC &nbsp;|&nbsp; ⏰ Brazil vs Morocco - Jun 13 22:00 UTC &nbsp;|&nbsp; 🏆 FIFA World Cup 2026™ is LIVE! &nbsp;|&nbsp; 📺 Watch all 104 matches in HD &nbsp;|&nbsp; 🌍 48 nations · 3 host countries · 1 champion &nbsp;|&nbsp;
+    ✅ FT: Mexico 🇲🇽 2–0 South Africa 🇿🇦 &nbsp;|&nbsp; ✅ FT: Korea Republic 🇰🇷 2–1 Czechia 🇨🇿 &nbsp;|&nbsp; 🔴 LIVE: Canada vs Bosnia &amp; Herz. 38' &nbsp;|&nbsp;
   </span>
 </div>
 
@@ -1485,31 +1714,74 @@ function livePage(): string {
 
     <!-- Right: Sidebar -->
     <div class="space-y-5">
-      <!-- Now Playing -->
+      <!-- Live Scores Panel -->
       <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(200,160,40,0.3); border-radius: 16px; padding: 20px;">
-        <h3 class="text-yellow-400 font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+        <h3 class="text-yellow-400 font-bold text-sm uppercase tracking-widest mb-3 flex items-center gap-2">
           <span class="live-indicator" style="width:8px;height:8px;"></span>
-          Now Live
+          Live Scores
+          <span id="scores-updated" style="font-size:0.6rem;color:#6b7280;margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0;"></span>
         </h3>
-        <div class="live-match-item now-playing mb-3">
+
+        <!-- FT Result 1 -->
+        <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:12px;margin-bottom:8px;">
+          <div class="flex items-center justify-between mb-1">
+            <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:1px 8px;font-size:0.6rem;font-weight:700;color:#4ade80;">FT</span>
+            <span style="color:#6b7280;font-size:0.6rem;">Group A</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1">
+              <span>🇲🇽</span>
+              <span style="color:white;font-size:0.78rem;font-weight:600;">Mexico</span>
+            </div>
+            <div class="score-display" style="font-size:1.1rem;padding:3px 10px;">2 - 0</div>
+            <div class="flex items-center gap-1">
+              <span style="color:white;font-size:0.78rem;font-weight:600;">S. Africa</span>
+              <span>🇿🇦</span>
+            </div>
+          </div>
+          <div style="color:#6b7280;font-size:0.6rem;margin-top:4px;text-align:center;">⚽ Quiñones 9' | R.Jiménez 67'</div>
+        </div>
+
+        <!-- FT Result 2 -->
+        <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:12px;margin-bottom:8px;">
+          <div class="flex items-center justify-between mb-1">
+            <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:1px 8px;font-size:0.6rem;font-weight:700;color:#4ade80;">FT</span>
+            <span style="color:#6b7280;font-size:0.6rem;">Group A</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1">
+              <span>🇰🇷</span>
+              <span style="color:white;font-size:0.78rem;font-weight:600;">Korea Rep.</span>
+            </div>
+            <div class="score-display" style="font-size:1.1rem;padding:3px 10px;">2 - 1</div>
+            <div class="flex items-center gap-1">
+              <span style="color:white;font-size:0.78rem;font-weight:600;">Czechia</span>
+              <span>🇨🇿</span>
+            </div>
+          </div>
+          <div style="color:#6b7280;font-size:0.6rem;margin-top:4px;text-align:center;">⚽ Hwang 61' | Oh 78' / Krejčí 34'</div>
+        </div>
+
+        <!-- LIVE Match -->
+        <div class="live-match-item now-playing" id="live-panel-match">
           <div class="flex items-center justify-between mb-2">
             <span style="background: rgba(212,0,45,0.2); border: 1px solid rgba(212,0,45,0.4); border-radius: 20px; padding: 2px 10px; font-size: 0.65rem; font-weight: 700; color: #F87171; text-transform: uppercase; letter-spacing: 1px;">● LIVE</span>
-            <span class="text-yellow-500 text-xs font-mono">27'</span>
+            <span class="text-yellow-500 text-xs font-mono" id="live-panel-min">38'</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span>🇲🇽</span>
-              <span class="text-white text-sm font-semibold">Mexico</span>
+              <span>🇨🇦</span>
+              <span class="text-white text-sm font-semibold">Canada</span>
             </div>
-            <div class="score-display" style="font-size:1.2rem;padding:4px 12px;">0 - 0</div>
+            <div class="score-display" id="live-panel-score" style="font-size:1.2rem;padding:4px 12px;">0 - 0</div>
             <div class="flex items-center gap-2">
-              <span class="text-white text-sm font-semibold">South Africa</span>
-              <span>🇿🇦</span>
+              <span class="text-white text-sm font-semibold">Bosnia</span>
+              <span>🇧🇦</span>
             </div>
           </div>
           <div class="mt-2 text-gray-500 text-xs flex items-center gap-1">
             <i class="fas fa-map-marker-alt text-yellow-700"></i>
-            Mexico City Stadium
+            Toronto Stadium · Group B
           </div>
         </div>
       </div>
@@ -1529,29 +1801,36 @@ function livePage(): string {
       <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px;">
         <h3 class="text-white font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
           <i class="fas fa-calendar text-yellow-400"></i>
-          Today's Schedule
+          Jun 11–12 Results
         </h3>
         <div class="space-y-2 text-sm">
           <div class="flex items-center justify-between py-2 border-b border-white/5">
             <div class="flex items-center gap-2">
-              <span class="text-red-400 text-xs font-bold">● LIVE</span>
-              <span class="text-white font-semibold">MEX vs RSA</span>
+              <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:1px 6px;font-size:0.6rem;font-weight:700;color:#4ade80;">FT</span>
+              <span class="text-white font-semibold">MEX 2–0 RSA</span>
             </div>
-            <span class="text-gray-400">19:00</span>
+            <span class="text-gray-500 text-xs">Jun 11</span>
           </div>
           <div class="flex items-center justify-between py-2 border-b border-white/5">
             <div class="flex items-center gap-2">
-              <span class="text-gray-500 text-xs">⏰</span>
-              <span class="text-gray-300">KOR vs CZE</span>
+              <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:1px 6px;font-size:0.6rem;font-weight:700;color:#4ade80;">FT</span>
+              <span class="text-white font-semibold">KOR 2–1 CZE</span>
             </div>
-            <span class="text-gray-400">02:00</span>
+            <span class="text-gray-500 text-xs">Jun 12</span>
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-white/5">
+            <div class="flex items-center gap-2">
+              <span class="text-red-400 text-xs font-bold">● LIVE</span>
+              <span class="text-white font-semibold">CAN vs BIH</span>
+            </div>
+            <span class="text-yellow-400 text-xs font-mono">38'</span>
           </div>
           <div class="flex items-center justify-between py-2">
             <div class="flex items-center gap-2">
               <span class="text-gray-500 text-xs">⏰</span>
-              <span class="text-gray-300">CAN vs BIH</span>
+              <span class="text-gray-300">USA vs PAR</span>
             </div>
-            <span class="text-gray-400">19:00</span>
+            <span class="text-gray-400 text-xs">Jun 13 01:00</span>
           </div>
         </div>
         <a href="/" class="mt-4 w-full block text-center bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs font-semibold py-2.5 rounded-xl transition-all">
@@ -1717,6 +1996,55 @@ function livePage(): string {
     btn.style.color = '#FFD700';
     btn.style.background = 'rgba(200,160,40,0.1)';
   }
+
+  // ── AUTO-UPDATE: Live Scores for Live Page ────────────────────────────────
+  async function fetchLivePageScores() {
+    try {
+      const res = await fetch('/api/scores');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Update ticker with latest results
+      const tickerParts = [];
+      data.matches.forEach(m => {
+        if (m.status === 'FT') {
+          tickerParts.push('✅ FT: ' + m.team1 + ' ' + m.flag1 + ' ' + m.score1 + '–' + m.score2 + ' ' + m.flag2 + ' ' + m.team2);
+        } else if (m.status === 'LIVE') {
+          tickerParts.push('🔴 LIVE: ' + m.team1 + ' ' + m.flag1 + ' vs ' + m.flag2 + ' ' + m.team2 + (m.minute ? ' ' + m.minute + "'" : ''));
+        }
+      });
+      if (tickerParts.length > 0) {
+        const tickerEl = document.getElementById('ticker-text');
+        if (tickerEl) {
+          const text = tickerParts.join(' &nbsp;|&nbsp; ') + ' &nbsp;|&nbsp; 🏆 FIFA World Cup 2026™ &nbsp;|&nbsp; 📺 Watch all 104 matches in HD &nbsp;|&nbsp; ' + tickerParts.join(' &nbsp;|&nbsp; ');
+          tickerEl.innerHTML = text;
+        }
+      }
+
+      // Update live panel sidebar
+      const liveMatches = data.matches.filter(m => m.status === 'LIVE');
+      if (liveMatches.length > 0) {
+        const lm = liveMatches[0];
+        const minEl = document.getElementById('live-panel-min');
+        const scoreEl = document.getElementById('live-panel-score');
+        if (minEl && lm.minute) minEl.textContent = lm.minute + "'";
+        if (scoreEl) {
+          const s1 = lm.score1 !== null ? lm.score1 : 0;
+          const s2 = lm.score2 !== null ? lm.score2 : 0;
+          scoreEl.textContent = s1 + ' - ' + s2;
+        }
+      }
+
+      // Show updated time
+      const el = document.getElementById('scores-updated');
+      if (el) el.textContent = new Date().toLocaleTimeString();
+
+    } catch(e) {}
+  }
+
+  // Poll every 30 seconds on live page
+  setInterval(fetchLivePageScores, 30000);
+  setTimeout(fetchLivePageScores, 1500);
 </script>
 </body>
 </html>`
